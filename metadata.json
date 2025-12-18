@@ -1,0 +1,5 @@
+{
+  "name": "TreadPro Manager",
+  "description": "Professional PWA for treadmill session management.",
+  "requestFramePermissions": []
+}
