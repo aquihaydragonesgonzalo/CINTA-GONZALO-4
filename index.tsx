@@ -3,7 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 
-const mount = () => {
+const init = () => {
   const container = document.getElementById('root');
   if (!container) return;
 
@@ -15,19 +15,14 @@ const mount = () => {
       </React.StrictMode>
     );
   } catch (err) {
-    console.error('Render error:', err);
-    const errorDisplay = document.getElementById('error-display');
-    if (errorDisplay) {
-      errorDisplay.style.display = 'block';
-      errorDisplay.innerText = 'Error de montaje: ' + (err instanceof Error ? err.message : String(err));
-    }
+    console.error('Fallo en el arranque de la App:', err);
   }
 };
 
-// En módulos ESM, el script se ejecuta de forma diferida automáticamente.
-// Intentamos montar directamente o esperamos a que el DOM esté listo si es necesario.
-if (document.readyState === 'complete') {
-  mount();
+// En Chrome, los módulos se ejecutan después de que el DOM está listo
+// pero intentamos asegurar el tiro.
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  init();
 } else {
-  window.addEventListener('load', mount);
+  document.addEventListener('DOMContentLoaded', init);
 }

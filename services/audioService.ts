@@ -5,20 +5,18 @@ class AudioService {
   private init() {
     if (this.context) return;
     try {
-      this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.context = new (window.AudioContext || (window as any).webkitAudioContext)({
+        latencyHint: 'interactive'
+      });
     } catch (e) {
-      console.warn("AudioContext no disponible en este navegador", e);
+      console.warn("AudioContext no soportado");
     }
   }
 
   async resume() {
     this.init();
     if (this.context && this.context.state === 'suspended') {
-      try {
-        await this.context.resume();
-      } catch (e) {
-        console.error("No se pudo activar el audio:", e);
-      }
+      await this.context.resume().catch(console.error);
     }
   }
 
@@ -42,7 +40,7 @@ class AudioService {
       osc.start();
       osc.stop(this.context.currentTime + dur / 1000);
     } catch (e) {
-      console.error("Error al generar tono de audio", e);
+      // Silencioso para no interrumpir el flujo del entrenamiento
     }
   }
 
@@ -51,7 +49,7 @@ class AudioService {
   }
 
   playSegmentEndBeep() {
-    this.playTone(1200, 400, 0.15);
+    this.playTone(1200, 400, 0.1);
   }
 }
 
