@@ -3,57 +3,55 @@ class AudioService {
   private context: AudioContext | null = null;
 
   private init() {
+    if (this.context) return;
     try {
-      if (!this.context) {
-        this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
+      this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
     } catch (e) {
-      console.warn("AudioContext no soportado o bloqueado", e);
+      console.warn("AudioContext no disponible en este navegador", e);
     }
   }
 
-  // Los navegadores móviles requieren llamar a resume() dentro de un evento de usuario
   async resume() {
     this.init();
     if (this.context && this.context.state === 'suspended') {
       try {
         await this.context.resume();
       } catch (e) {
-        console.error("Error al reanudar AudioContext", e);
+        console.error("No se pudo activar el audio:", e);
       }
     }
   }
 
-  beep(frequency: number = 880, duration: number = 200) {
+  private playTone(freq: number, dur: number, vol: number = 0.1) {
     this.init();
     if (!this.context || this.context.state !== 'running') return;
 
     try {
-      const oscillator = this.context.createOscillator();
-      const gainNode = this.context.createGain();
+      const osc = this.context.createOscillator();
+      const gain = this.context.createGain();
 
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(frequency, this.context.currentTime);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, this.context.currentTime);
       
-      gainNode.gain.setValueAtTime(0.1, this.context.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, this.context.currentTime + duration / 1000);
+      gain.gain.setValueAtTime(vol, this.context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.context.currentTime + dur / 1000);
 
-      oscillator.connect(gainNode);
-      gainNode.connect(this.context.destination);
+      osc.connect(gain);
+      gain.connect(this.context.destination);
 
-      oscillator.start();
-      oscillator.stop(this.context.currentTime + duration / 1000);
+      osc.start();
+      osc.stop(this.context.currentTime + dur / 1000);
     } catch (e) {
-      console.error("Error al reproducir beep", e);
+      console.error("Error al generar tono de audio", e);
     }
   }
 
   playCountdownBeep() {
-    this.beep(440, 150);
+    this.playTone(880, 100, 0.05);
   }
 
   playSegmentEndBeep() {
-    this.beep(1200, 500);
+    this.playTone(1200, 400, 0.15);
   }
 }
 

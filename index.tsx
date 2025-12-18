@@ -3,7 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 
-const initApp = () => {
+const mount = () => {
   const container = document.getElementById('root');
   if (!container) return;
 
@@ -16,13 +16,18 @@ const initApp = () => {
     );
   } catch (err) {
     console.error('Render error:', err);
-    const statusText = document.getElementById('status-text');
-    if (statusText) statusText.innerText = 'Error al renderizar la App';
+    const errorDisplay = document.getElementById('error-display');
+    if (errorDisplay) {
+      errorDisplay.style.display = 'block';
+      errorDisplay.innerText = 'Error de montaje: ' + (err instanceof Error ? err.message : String(err));
+    }
   }
 };
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
+// En módulos ESM, el script se ejecuta de forma diferida automáticamente.
+// Intentamos montar directamente o esperamos a que el DOM esté listo si es necesario.
+if (document.readyState === 'complete') {
+  mount();
 } else {
-  initApp();
+  window.addEventListener('load', mount);
 }
